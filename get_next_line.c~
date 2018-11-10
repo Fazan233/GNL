@@ -1,0 +1,97 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
+/*   Updated: 2018/11/09 21:49:44 by vuslysty         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <stdio.h>
+#include "libft.h"
+#include <fcntl.h>
+#include "get_next_line.h"
+
+char		*ft_strjoi(char *s1, char *s2)
+{
+	char	*newstr;
+
+	if (s1 == NULL || s2 == NULL)
+		return (NULL);
+	newstr = ft_memalloc(ft_strlen(s1) + ft_strlen(s2) + 1);
+	if (newstr == NULL)
+		return (NULL);
+	ft_strcpy(newstr, s1);
+	ft_strcat(newstr, s2);
+	free((void*)s1);
+	return (newstr);
+}
+
+int				get_next_line(const int fd, char **line)
+{
+	static char	buf[BUFF_SIZE + 1] = {0};
+	int			rd;
+	int			i;
+	char		*temp;
+	char		*t;
+
+	if (fd < 0)
+		return (-1);
+	ft_strclr(*line);
+	i = 0;
+	while (buf[i] != '\0')
+	{
+		if (buf[i] == '\n')
+		{
+			temp = ft_strsub(buf, 0, i);
+			*line = ft_strjoi(*line, temp);
+			ft_strcpy(buf, buf + i + 1);
+			free(temp);
+			return (1);
+		}
+		i++;
+	}
+	*line = ft_strjoi(*line, buf);
+	if (buf[i] == '\0')
+		while ((rd = read(fd, buf, BUFF_SIZE)) > 0)
+		{
+			buf[rd] = '\0';
+			i = 0;
+			while (buf[i] != '\n' && buf[i] != '\0')
+				i++;
+			if (buf[i] == '\n')
+			{
+				temp = ft_strsub(buf, 0, i);
+				*line = ft_strjoi(*line, temp);
+				ft_strcpy(buf, buf + i + 1);
+				free(temp);
+				break;
+			}
+			else
+				*line = ft_strjoi(*line, buf);
+		}
+	return ((rd == 0) ? 0 : 1);
+}
+
+int main()
+{
+	int fd;
+	char *str;
+
+	str = ft_strdup("");
+	fd = open("harry.txt", O_RDONLY);
+	while (get_next_line(fd, &str))
+	{
+//		get_next_line(fd, &str);
+		ft_putstr(str);
+		ft_putchar('\n');
+//		free(str);
+	}
+	ft_putstr(str);
+	system("leaks a.out");
+	return 0;
+}
+
