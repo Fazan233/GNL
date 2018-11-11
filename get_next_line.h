@@ -17,5 +17,12 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include "libft.h"
+
+int                 get_next_line(const int fd, char **line);
+t_list              *get_right_list(int fd, t_list *begin);
+int                 is_endline(t_list *list, char **all_str);
+t_list*             ft_listnew(int fd);
+int                 validator(t_list *list, char **all_str);
 
 #endif

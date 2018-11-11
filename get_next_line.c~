@@ -6,7 +6,7 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/10 22:02:11 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/11 18:44:10 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,46 +40,71 @@ int					is_endline(t_list *list, char **all_str)
 	int				i;
 	char			*temp;
 	char			buf[BUFF_SIZE + 1];
-	int				len;
 	char			*str_buf;
 
 	str_buf = (char*)list->content;
-	i = 0;
-	len = ft_strlen(str_buf);
-	while (str_buf[++i] != '\0' && len--)
+	i = -1;
+	temp = *all_str;
+	while (str_buf[++i] != '\0')
 		if (str_buf[i] == '\n')
 		{
-			temp = *all_str;
 			ft_strncpy(buf, str_buf, i);
+			buf[i] = '\0';
 			*all_str = ft_strjoin(temp, buf);
 			free(temp);
-			ft_strcpy((char*)list->content, str_buf + i + 1);
+			ft_strcpy(str_buf, str_buf + i + 1);
 			return (1);
 		}
-	temp = *all_str;
 	*all_str = ft_strjoin(temp, str_buf);
 	free(temp);
-//	((char*)list->content)[0] = '\0';
+	ft_bzero(list->content, BUFF_SIZE);
 	return (0);
 }
 
 t_list				*get_right_list(int fd, t_list *begin)
 {
 	t_list			*temp;
-	char			*new;
 
 	temp = begin;
 	while (temp->next != NULL)
 	{
-		if (temp->content_size == fd)
+		if ((int)temp->content_size == fd)
 			return (temp);
 		temp = temp->next;
 	}
-	if (temp->content_size == fd)
+	if ((int)temp->content_size == fd)
 		return (temp);
 	else
 		ft_lstadd_end(&begin, ft_listnew(fd));
 	return (temp->next);
+}
+
+int					validator(t_list *list, char **all_str)
+{
+	int				rd;
+	int				fd;
+	char			buf[1];
+	t_list			*temp;
+
+	fd = (int)list->content_size;
+	if (fd >= 0)
+	{
+		rd = read(fd, buf, 1);
+		if (rd == 1)
+		{
+			((char*)list->content)[ft_strlen(((char*)list->content))] = *buf;
+			return (1);
+		}
+		else
+		{
+			ft_strdel(all_str);
+			temp = list->next;
+			free(list->content);
+			free(list);
+			list = temp;
+		}
+	}
+	return (0);
 }
 
 int					get_next_line(const int fd, char **line)
@@ -91,10 +116,11 @@ int					get_next_line(const int fd, char **line)
 
 	all_str = ft_strdup("");
 	temp = get_right_list(fd, &list);
+	if (!validator(temp, &all_str))
+		return (-1);
 	if (is_endline(temp , &all_str))
 	{
 		*line = all_str;
-//		ft_lstprint(&list);
 		return (1);
 	}
 	while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
@@ -104,59 +130,27 @@ int					get_next_line(const int fd, char **line)
 			break ;
 	}
 	*line = all_str;
-	return ((rd == 0) ? 0 : 1);
+	return ((rd == 0 && **line == '\0') ? 0 : 1);
 }
 
-int					main(void)
+int main()
 {
-	int				fd1;
-	int				fd2;
-	char			*str;
-
-	fd1 = open("test1", O_RDONLY);
-	fd2 = open("test2", O_RDONLY);
-
-	while (get_next_line(fd1, &str))
-	{
-		ft_putstr(str);
-		ft_putchar('\n');
-		free(str);
-	}
-	ft_putstr(str);
+	int fd = open("test1", O_RDONLY);
+	/*ft_putnbr(fd);
 	ft_putchar('\n');
-
-
-
-/*
-	get_next_line(fd1, &str);
-	ft_putstr(str);
-	ft_putchar('\n');
-	free(str);
-	get_next_line(fd2, &str);
-	ft_putstr(str);
-	ft_putchar('\n');
-	free(str);
-	get_next_line(fd1, &str);
-    ft_putstr(str);
+	close(fd);
+	ft_putnbr(fd);
     ft_putchar('\n');
-    free(str);
-	get_next_line(fd2, &str);
-    ft_putstr(str);
-    ft_putchar('\n');
-    free(str);
-	get_next_line(fd1, &str);
-    ft_putstr(str);
-    ft_putchar('\n');
-    free(str);
-	get_next_line(fd2, &str);
-    ft_putstr(str);
-    ft_putchar('\n');
-    free(str);
-	get_next_line(fd1, &str);
-    ft_putstr(str);
-    ft_putchar('\n');
-    free(str);
-*/
-//	system("leaks a.out");
+	int rd;
+	char buf[10];
+	rd = read(fd, buf, 9);
+	ft_putnbr(rd);
+	ft_putchar('\n'); */
+	close(fd);
+	char *line;
+	int i = get_next_line(fd, &line);
+	ft_putnbr(i);
 	return (0);
 }
+
+
