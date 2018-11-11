@@ -6,7 +6,7 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/10 18:43:07 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/11 12:41:32 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,26 @@
 #include "libft.h"
 #include <fcntl.h>
 #include "get_next_line.h"
+
+t_list*				ft_listnew(int fd)
+{
+	t_list			*list;
+
+	list = (t_list*)ft_memalloc(sizeof(t_list));
+	if (list)
+	{
+		list->next = NULL;
+		list->content = (char*)ft_memalloc(BUFF_SIZE + 1);
+		if (list->content)
+			list->content_size = fd;
+		else
+		{
+			free(list);
+			return (NULL);
+		}
+	}
+	return (list);
+}
 
 int					is_endline(t_list *list, char **all_str)
 {
@@ -31,6 +51,7 @@ int					is_endline(t_list *list, char **all_str)
 		{
 			temp = *all_str;
 			ft_strncpy(buf, str_buf, i);
+			buf[i] = '\0';
 			*all_str = ft_strjoin(temp, buf);
 			free(temp);
 			ft_strcpy(str_buf, str_buf + i + 1);
@@ -42,45 +63,39 @@ int					is_endline(t_list *list, char **all_str)
 	return (0);
 }
 
-t_list				*get_right_list(int fd, t_list *list)
+t_list				*get_right_list(int fd, t_list *begin)
 {
-	t_list			*begin;
+	t_list			*temp;
+	char			*new;
 
-	begin = list;
-	
-	while (list->next != NULL)
+	temp = begin;
+	while (temp->next != NULL)
 	{
-		if (list->content_size == fd)
-			return (list);
-		list = list->next;
+		if (temp->content_size == fd)
+			return (temp);
+		temp = temp->next;
 	}
-	if (list->content_size == fd)
-		return (list);
+	if (temp->content_size == fd)
+		return (temp);
 	else
-		ft_lstadd_end(&begin, ft_lstnew(NULL, fd));
-	return (begin);
+		ft_lstadd_end(&begin, ft_listnew(fd));
+	return (temp->next);
 }
 
 int					get_next_line(const int fd, char **line)
 {
-	static t_list	list = {NULL, 1, NULL};
+	static t_list	list = {"", -1, NULL};
 	t_list			*temp;
 	char			*all_str;
 	int				rd;
 
 	all_str = ft_strdup("");
 	temp = get_right_list(fd, &list);
-	
-	if (temp->content)
+	if (is_endline(temp , &all_str))
 	{
-		if (is_endline(temp , &all_str))
-		{
-			*line = all_str;
-			return (1);
-		}
+		*line = all_str;
+		return (1);
 	}
-	else
-		temp->content = (char*)ft_memalloc(BUFF_SIZE + 1);
 	while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
 	{
 		((char*)temp->content)[rd] = '\0';
@@ -95,11 +110,14 @@ int					main(void)
 {
 	int				fd1;
 	int				fd2;
+	int				fd3;
 	char			*str;
 
-	fd1 = open("test1", O_RDONLY);
-	fd2 = open("test2", O_RDONLY);
-/*	while (get_next_line(fd, &str))
+	fd1 = open("harry_potter.txt", O_RDONLY);
+	fd2 = open("test1", O_RDONLY);
+	fd3 = open("get_next_line.h", O_RDONLY);
+
+	while (get_next_line(fd1, &str))
 	{
 		ft_putstr(str);
 		ft_putchar('\n');
@@ -107,7 +125,25 @@ int					main(void)
 	}
 	ft_putstr(str);
 	ft_putchar('\n');
-*/
+
+	while (get_next_line(fd2, &str))
+    {
+        ft_putstr(str);
+        ft_putchar('\n');
+        free(str);
+    }
+    ft_putstr(str);
+    ft_putchar('\n');
+
+	while (get_next_line(fd3, &str))
+    {
+        ft_putstr(str);
+        ft_putchar('\n');
+        free(str);
+    }
+    ft_putstr(str);
+    ft_putchar('\n');
+/*
 	get_next_line(fd1, &str);
 	ft_putstr(str);
 	ft_putchar('\n');
@@ -116,7 +152,27 @@ int					main(void)
 	ft_putstr(str);
 	ft_putchar('\n');
 	free(str);
-
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd2, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd2, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+*/
 //	system("leaks a.out");
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/09 21:49:44 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/10 22:02:11 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,83 +15,148 @@
 #include <fcntl.h>
 #include "get_next_line.h"
 
-char		*ft_strjoi(char *s1, char *s2)
+t_list*				ft_listnew(int fd)
 {
-	char	*newstr;
+	t_list			*list;
 
-	if (s1 == NULL || s2 == NULL)
-		return (NULL);
-	newstr = ft_memalloc(ft_strlen(s1) + ft_strlen(s2) + 1);
-	if (newstr == NULL)
-		return (NULL);
-	ft_strcpy(newstr, s1);
-	ft_strcat(newstr, s2);
-	free((void*)s1);
-	return (newstr);
+	list = (t_list*)ft_memalloc(sizeof(t_list));
+	if (list)
+	{
+		list->next = NULL;
+		list->content = (char*)ft_memalloc(BUFF_SIZE + 1);
+		if (list->content)
+			list->content_size = fd;
+		else
+		{
+			free(list);
+			return (NULL);
+		}
+	}
+	return (list);
 }
 
-int				get_next_line(const int fd, char **line)
+int					is_endline(t_list *list, char **all_str)
 {
-	static char	buf[BUFF_SIZE + 1] = {0};
-	int			rd;
-	int			i;
-	char		*temp;
-	char		*t;
+	int				i;
+	char			*temp;
+	char			buf[BUFF_SIZE + 1];
+	int				len;
+	char			*str_buf;
 
-	if (fd < 0)
-		return (-1);
-	ft_strclr(*line);
+	str_buf = (char*)list->content;
 	i = 0;
-	while (buf[i] != '\0')
-	{
-		if (buf[i] == '\n')
+	len = ft_strlen(str_buf);
+	while (str_buf[++i] != '\0' && len--)
+		if (str_buf[i] == '\n')
 		{
-			temp = ft_strsub(buf, 0, i);
-			*line = ft_strjoi(*line, temp);
-			ft_strcpy(buf, buf + i + 1);
+			temp = *all_str;
+			ft_strncpy(buf, str_buf, i);
+			*all_str = ft_strjoin(temp, buf);
 			free(temp);
+			ft_strcpy((char*)list->content, str_buf + i + 1);
 			return (1);
 		}
-		i++;
+	temp = *all_str;
+	*all_str = ft_strjoin(temp, str_buf);
+	free(temp);
+//	((char*)list->content)[0] = '\0';
+	return (0);
+}
+
+t_list				*get_right_list(int fd, t_list *begin)
+{
+	t_list			*temp;
+	char			*new;
+
+	temp = begin;
+	while (temp->next != NULL)
+	{
+		if (temp->content_size == fd)
+			return (temp);
+		temp = temp->next;
 	}
-	*line = ft_strjoi(*line, buf);
-	if (buf[i] == '\0')
-		while ((rd = read(fd, buf, BUFF_SIZE)) > 0)
-		{
-			buf[rd] = '\0';
-			i = 0;
-			while (buf[i] != '\n' && buf[i] != '\0')
-				i++;
-			if (buf[i] == '\n')
-			{
-				temp = ft_strsub(buf, 0, i);
-				*line = ft_strjoi(*line, temp);
-				ft_strcpy(buf, buf + i + 1);
-				free(temp);
-				break;
-			}
-			else
-				*line = ft_strjoi(*line, buf);
-		}
+	if (temp->content_size == fd)
+		return (temp);
+	else
+		ft_lstadd_end(&begin, ft_listnew(fd));
+	return (temp->next);
+}
+
+int					get_next_line(const int fd, char **line)
+{
+	static t_list	list = {"", -1, NULL};
+	t_list			*temp;
+	char			*all_str;
+	int				rd;
+
+	all_str = ft_strdup("");
+	temp = get_right_list(fd, &list);
+	if (is_endline(temp , &all_str))
+	{
+		*line = all_str;
+//		ft_lstprint(&list);
+		return (1);
+	}
+	while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
+	{
+		((char*)temp->content)[rd] = '\0';
+		if (is_endline(temp, &all_str))
+			break ;
+	}
+	*line = all_str;
 	return ((rd == 0) ? 0 : 1);
 }
 
-int main()
+int					main(void)
 {
-	int fd;
-	char *str;
+	int				fd1;
+	int				fd2;
+	char			*str;
 
-	str = ft_strdup("");
-	fd = open("harry.txt", O_RDONLY);
-	while (get_next_line(fd, &str))
+	fd1 = open("test1", O_RDONLY);
+	fd2 = open("test2", O_RDONLY);
+
+	while (get_next_line(fd1, &str))
 	{
-//		get_next_line(fd, &str);
 		ft_putstr(str);
 		ft_putchar('\n');
-//		free(str);
+		free(str);
 	}
 	ft_putstr(str);
-	system("leaks a.out");
-	return 0;
-}
+	ft_putchar('\n');
 
+
+
+/*
+	get_next_line(fd1, &str);
+	ft_putstr(str);
+	ft_putchar('\n');
+	free(str);
+	get_next_line(fd2, &str);
+	ft_putstr(str);
+	ft_putchar('\n');
+	free(str);
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd2, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd2, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+	get_next_line(fd1, &str);
+    ft_putstr(str);
+    ft_putchar('\n');
+    free(str);
+*/
+//	system("leaks a.out");
+	return (0);
+}
