@@ -6,7 +6,7 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/11 21:41:24 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/13 13:39:19 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #include "get_next_line.h"
 
-t_list*				ft_listnew(int fd)
+t_list				*ft_listnew(int fd)
 {
 	t_list			*list;
 
@@ -52,12 +52,12 @@ int					is_endline(t_list *list, char **all_str)
 			buf[i] = '\0';
 			*all_str = ft_strjoin(temp, buf);
 			free(temp);
-			ft_strcpy(str_buf, str_buf + i + 1);
+			ft_strncpy(str_buf, str_buf + i + 1, BUFF_SIZE);
 			return (1);
 		}
 	*all_str = ft_strjoin(temp, str_buf);
 	free(temp);
-	ft_bzero(list->content, BUFF_SIZE);
+	ft_bzero(str_buf, BUFF_SIZE);
 	return (0);
 }
 
@@ -79,32 +79,31 @@ t_list				*get_right_list(int fd, t_list *begin)
 	return (temp->next);
 }
 
+/*
+** The function *validator* return 3 values: -1, 0, 1
+** -1 - when discriptor is not valid;
+** 0  - when file is valid and you can read it;
+** 1  - when file descriptor moved to end
+*/
+
 int					validator(t_list *list, char **all_str)
 {
 	int				rd;
 	int				fd;
 	char			buf[1];
-	t_list			*temp;
 
 	fd = (int)list->content_size;
 	if (fd >= 0)
 	{
 		rd = read(fd, buf, 1);
-		if (rd == 1 || rd == 0)
-		{
+		if (rd == 1)
 			((char*)list->content)[ft_strlen(((char*)list->content))] = *buf;
-			((char*)list->content)[ft_strlen(((char*)list->content)) + 1] = '\0';
+		if (rd == 0)
+			free(*all_str);
+		if (rd == 1 || rd == 0)
 			return ((rd == 0) ? 1 : 0);
-		}
-		else
-		{
-			ft_strdel(all_str);
-			temp = list->next;
-			free(list->content);
-			free(list);
-			list = temp;
-		}
 	}
+	free(*all_str);
 	return (-1);
 }
 
@@ -122,17 +121,15 @@ int					get_next_line(const int fd, char **line)
 	if (((char*)(temp->content))[0] == '\0')
 		if (valid)
 			return ((valid == 1) ? 0 : -1);
-	if (is_endline(temp , &all_str))
-	{
-		*line = all_str;
-		return (1);
-	}
-	while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
-	{
-		((char*)temp->content)[rd] = '\0';
-		if (is_endline(temp, &all_str))
-			break ;
-	}
+	if (is_endline(temp, &all_str))
+		rd = 1;
+	else
+		while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
+		{
+			((char*)temp->content)[rd] = '\0';
+			if (is_endline(temp, &all_str))
+				break ;
+		}
 	*line = all_str;
 	return ((rd == 0 && **line == '\0') ? 0 : 1);
 }

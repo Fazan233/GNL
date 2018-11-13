@@ -5,18 +5,19 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/11/09 13:31:17 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/09 13:33:17 by vuslysty         ###   ########.fr       */
+/*   Created: 2018/11/12 20:44:34 by vuslysty          #+#    #+#             */
+/*   Updated: 2018/11/12 20:46:41 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
+#include "get_next_line.h"
 
 int main()
 {
-	static char mas[100] = {'a'};
+	int fd;
+	char *str;
 
-	mas[99] = '\0';
-	printf("%s\n", mas);
-	return 0;
+	fd = get_next_line(fd, &str);
+	ft_putstr(str);
+	return (0);
 }

@@ -1,162 +1,30 @@
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
-Hello
-Angry
-World
+int					get_next_line(const int fd, char **line)
+{
+	static t_list	list = {"", -1, NULL};
+	t_list			*temp;
+	char			*all_str;
+	int				rd;
+	int				valid;
+
+//    if (BUFF_SIZE <= 0)
+//        return (-1);
+	all_str = ft_strdup("");
+	temp = get_right_list(fd, &list);
+	valid = validator(temp);
+//	if (((char*)(temp->content))[0] == '\0')
+		if (valid)
+			return ((valid == 1) ? 0 : -1);
+	if (is_endline(temp, &all_str))
+	{
+		*line = all_str;
+		return (1);
+	}
+	while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
+	{
+		((char*)temp->content)[rd] = '\0';
+		if (is_endline(temp, &all_str))
+			break ;
+	}
+	*line = all_str;
+	return ((rd == 0 && **line == '\0') ? 0 : 1);
+}
