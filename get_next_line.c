@@ -6,13 +6,10 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/13 13:39:19 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/13 15:55:00 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include "libft.h"
-#include <fcntl.h>
 #include "get_next_line.h"
 
 t_list				*ft_listnew(int fd)
@@ -76,7 +73,7 @@ t_list				*get_right_list(int fd, t_list *begin)
 		return (temp);
 	else
 		ft_lstadd_end(&begin, ft_listnew(fd));
-	return (temp->next);
+	return ((temp->next) ? temp->next : NULL);
 }
 
 /*
@@ -92,8 +89,9 @@ int					validator(t_list *list, char **all_str)
 	int				fd;
 	char			buf[1];
 
+	*all_str = ft_strdup("");
 	fd = (int)list->content_size;
-	if (fd >= 0)
+	if (fd >= 0 && *all_str != NULL)
 	{
 		rd = read(fd, buf, 1);
 		if (rd == 1)
@@ -115,8 +113,9 @@ int					get_next_line(const int fd, char **line)
 	int				rd;
 	int				valid;
 
-	all_str = ft_strdup("");
 	temp = get_right_list(fd, &list);
+	if (!temp)
+		return (-1);
 	valid = validator(temp, &all_str);
 	if (((char*)(temp->content))[0] == '\0')
 		if (valid)

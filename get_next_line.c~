@@ -6,13 +6,10 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/12 21:46:14 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/13 13:39:19 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include "libft.h"
-#include <fcntl.h>
 #include "get_next_line.h"
 
 t_list				*ft_listnew(int fd)
@@ -53,7 +50,7 @@ int					is_endline(t_list *list, char **all_str)
 			*all_str = ft_strjoin(temp, buf);
 			free(temp);
 			ft_strncpy(str_buf, str_buf + i + 1, BUFF_SIZE);
-            return (1);
+			return (1);
 		}
 	*all_str = ft_strjoin(temp, str_buf);
 	free(temp);
@@ -76,7 +73,7 @@ t_list				*get_right_list(int fd, t_list *begin)
 		return (temp);
 	else
 		ft_lstadd_end(&begin, ft_listnew(fd));
-	return (temp->next);
+    return ((temp->next) ? temp->next : NULL);
 }
 
 /*
@@ -92,44 +89,46 @@ int					validator(t_list *list, char **all_str)
 	int				fd;
 	char			buf[1];
 
+    *all_str = ft_strdup("");
 	fd = (int)list->content_size;
-	if (fd >= 0)
+	if (fd >= 0 && *all_str != NULL)
 	{
 		rd = read(fd, buf, 1);
 		if (rd == 1)
 			((char*)list->content)[ft_strlen(((char*)list->content))] = *buf;
-        if (rd == 0)
-            free(*all_str);
+		if (rd == 0)
+			free(*all_str);
 		if (rd == 1 || rd == 0)
 			return ((rd == 0) ? 1 : 0);
 	}
-    free(*all_str);
+	free(*all_str);
 	return (-1);
 }
 
-int                    get_next_line(const int fd, char **line)
+int					get_next_line(const int fd, char **line)
 {
-    static t_list    list = {"", -1, NULL};
-    t_list            *temp;
-    char            *all_str;
-    int                rd;
-    int                valid;
-    
-    all_str = ft_strdup("");
-    temp = get_right_list(fd, &list);
-    valid = validator(temp, &all_str);
-    if (((char*)(temp->content))[0] == '\0')
-        if (valid)
-            return ((valid == 1) ? 0 : -1);
-    if (is_endline(temp, &all_str))
-        rd = 1;
-    else
-    while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
-    {
-        ((char*)temp->content)[rd] = '\0';
-        if (is_endline(temp, &all_str))
-            break ;
-    }
-    *line = all_str;
-    return ((rd == 0 && **line == '\0') ? 0 : 1);
+	static t_list	list = {"", -1, NULL};
+	t_list			*temp;
+	char			*all_str;
+	int				rd;
+	int				valid;
+
+	temp = get_right_list(fd, &list);
+    if (!temp)
+        return (-1);
+	valid = validator(temp, &all_str);
+	if (((char*)(temp->content))[0] == '\0')
+		if (valid)
+			return ((valid == 1) ? 0 : -1);
+	if (is_endline(temp, &all_str))
+		rd = 1;
+	else
+		while ((rd = read(fd, (char*)temp->content, BUFF_SIZE)))
+		{
+			((char*)temp->content)[rd] = '\0';
+			if (is_endline(temp, &all_str))
+				break ;
+		}
+	*line = all_str;
+	return ((rd == 0 && **line == '\0') ? 0 : 1);
 }
