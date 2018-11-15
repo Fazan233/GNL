@@ -6,13 +6,13 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/11/08 13:42:11 by vuslysty          #+#    #+#             */
-/*   Updated: 2018/11/13 15:55:00 by vuslysty         ###   ########.fr       */
+/*   Updated: 2018/11/15 15:13:25 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-t_list				*ft_listnew(int fd)
+static t_list		*ft_listnew(int fd)
 {
 	t_list			*list;
 
@@ -32,7 +32,7 @@ t_list				*ft_listnew(int fd)
 	return (list);
 }
 
-int					is_endline(t_list *list, char **all_str)
+static int			is_endline(t_list *list, char **all_str)
 {
 	int				i;
 	char			*temp;
@@ -58,11 +58,13 @@ int					is_endline(t_list *list, char **all_str)
 	return (0);
 }
 
-t_list				*get_right_list(int fd, t_list *begin)
+static t_list		*get_right_list(int fd, t_list *begin)
 {
 	t_list			*temp;
 
 	temp = begin;
+	if (!begin->content)
+		begin->content = (char*)ft_memalloc(BUFF_SIZE + 1);
 	while (temp->next != NULL)
 	{
 		if ((int)temp->content_size == fd)
@@ -83,42 +85,37 @@ t_list				*get_right_list(int fd, t_list *begin)
 ** 1  - when file descriptor moved to end
 */
 
-int					validator(t_list *list, char **all_str)
+static int			validator(t_list *list)
 {
 	int				rd;
 	int				fd;
 	char			buf[1];
 
-	*all_str = ft_strdup("");
 	fd = (int)list->content_size;
-	if (fd >= 0 && *all_str != NULL)
+	if (fd >= 0)
 	{
 		rd = read(fd, buf, 1);
 		if (rd == 1)
 			((char*)list->content)[ft_strlen(((char*)list->content))] = *buf;
-		if (rd == 0)
-			free(*all_str);
 		if (rd == 1 || rd == 0)
 			return ((rd == 0) ? 1 : 0);
 	}
-	free(*all_str);
 	return (-1);
 }
 
 int					get_next_line(const int fd, char **line)
 {
-	static t_list	list = {"", -1, NULL};
+	static t_list	list = {NULL, 0, NULL};
 	t_list			*temp;
 	char			*all_str;
 	int				rd;
 	int				valid;
 
+	all_str = ft_strdup("");
 	temp = get_right_list(fd, &list);
-	if (!temp)
-		return (-1);
-	valid = validator(temp, &all_str);
+	VALID_LIST(temp);
 	if (((char*)(temp->content))[0] == '\0')
-		if (valid)
+		if ((valid = validator(temp)))
 			return ((valid == 1) ? 0 : -1);
 	if (is_endline(temp, &all_str))
 		rd = 1;
@@ -130,5 +127,5 @@ int					get_next_line(const int fd, char **line)
 				break ;
 		}
 	*line = all_str;
-	return ((rd == 0 && **line == '\0') ? 0 : 1);
+	GNL_RETURN(rd);
 }

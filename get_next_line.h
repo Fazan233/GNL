@@ -15,12 +15,12 @@
 # define BUFF_SIZE 32
 # include <sys/types.h>
 # include <sys/uio.h>
-# include "libft.h"
+# include "libft/libft.h"
+# define F_CLOSE {ft_bzero(temp->content, BUFF_SIZE);return(-1);}
+# define END_OR_OK {return((rd == 0 && **line == '\0') ? 0 : 1);}
+# define GNL_RETURN(rd) if(rd == -1){F_CLOSE}else{END_OR_OK}
+# define VALID_LIST(list) if(!list){free(all_str);return(-1);}
 
 int		get_next_line(const int fd, char **line);
-t_list	*get_right_list(int fd, t_list *begin);
-int		is_endline(t_list *list, char **all_str);
-t_list	*ft_listnew(int fd);
-int		validator(t_list *list, char **all_str);
 
 #endif
