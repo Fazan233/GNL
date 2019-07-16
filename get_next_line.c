@@ -6,7 +6,7 @@
 /*   By: vuslysty <vuslysty@student.unit.ua>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/16 16:16:03 by vuslysty          #+#    #+#             */
-/*   Updated: 2019/01/16 17:41:24 by vuslysty         ###   ########.fr       */
+/*   Updated: 2019/07/16 19:29:56 by vuslysty         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,5 @@ int				get_next_line(const int fd, char **line)
 	delete_unused_fd(&list, tmp);
 	if (**line != 0)
 		return (1);
-	free(*line);
 	return (rd == -1 ? -1 : 0);
 }
